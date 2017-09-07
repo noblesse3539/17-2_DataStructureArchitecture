@@ -2,6 +2,7 @@
 public class AppController {
 	// Private instance variables
 	private AdjacencyMatrixGraph _graph;
+	private PairwiseDisjointSets _pairwiseDisjointSets;
 	
 	// Getter & Setter
 	private AdjacencyMatrixGraph graph() {
@@ -10,9 +11,17 @@ public class AppController {
 	private void setGraph(AdjacencyMatrixGraph newGraph) {
 		this._graph = newGraph;
 	}
-	
+	private PairwiseDisjointSets pairwiseDisjointSets() {
+		return this._pairwiseDisjointSets;
+	}
+	private void setPairwiseDisjointSets(PairwiseDisjointSets newPairwiseDisjointSets) {
+		this._pairwiseDisjointSets = newPairwiseDisjointSets;
+	}
+
+	// Constructor
 	public AppController() {	
-		this.setGraph(null);;
+		this.setGraph(null);
+		this.setPairwiseDisjointSets(null);
 	}
 	private void inputAndMakeGraph() {
 		AppView.outputLine("> 입력할 그래프의 vertex 수와 edge 수를 먼저 입력해야 합니다:");
@@ -22,7 +31,8 @@ public class AppController {
 		int numberOfEdges = this.inputNumberOfEdges();
 		AppView.outputLine("");
 		AppView.outputLine("> 이제부터 edge를 주어진 수 만큼 입력합니다.");
-		
+		this.initCycleDetection();
+
 		int edgeCount = 0;
 		while (edgeCount < numberOfEdges) {
 			Edge edge = this.inputEdge();
@@ -35,6 +45,10 @@ public class AppController {
 				this.graph().addEdge(edge);
 				AppView.outputLine("!새로운 edge (" +
 						edge.tailVertex() + "," + edge.headVertex() + ") 가 그래프에 삽입되었습니다.");
+				if (this.addedEdgeDoesMakeCycle(edge)) {
+					AppView.outputLine("![Cycle]  삽입된 edge (" + edge.tailVertex() + ", " +
+						edge.headVertex() + ") 는 그래프에 사이클을 만들었습니다.");
+				}
 			}
 		}
 	}
@@ -98,6 +112,21 @@ public class AppController {
 			}
 		} while (true);
 	}
-
-
+	private void initCycleDetection() {
+		this.setPairwiseDisjointSets(
+				new PairwiseDisjointSets(this.graph().numberOvVertices()));
+	}
+	private boolean addedEdgeDoesMakeCycle (Edge anAddedEdge) {
+		int tailVertex = anAddedEdge.tailVertex();
+		int headVertex = anAddedEdge.headVertex();
+		int setForTailVertex = this.pairwiseDisjointSets().find(tailVertex);
+		int setForHeadVertex = this.pairwiseDisjointSets().find(headVertex);
+		if (setForTailVertex == setForHeadVertex) {
+			return true;
+		}
+		else {
+			this.pairwiseDisjointSets().union(setForTailVertex, setForHeadVertex);
+			return false;
+		}
+	}
 }
