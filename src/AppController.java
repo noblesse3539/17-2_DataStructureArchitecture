@@ -1,4 +1,3 @@
-
 public class AppController {
 	// Private instance variables
 	private AdjacencyMatrixGraph _graph;
