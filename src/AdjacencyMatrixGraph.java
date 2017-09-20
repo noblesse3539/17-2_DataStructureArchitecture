@@ -14,15 +14,15 @@ public class AdjacencyMatrixGraph {
 		this.setNumberOfVertices(givenNumberOfVertices);
 		this.setNumberOfEdges(0);
 		this.setAdjacency(new int[givenNumberOfVertices][givenNumberOfVertices]);
-		for (int tailVertex = 0; tailVertex < this.numberOvVertices(); tailVertex++ ) {
-			for (int headVertex = 0; headVertex < this.numberOvVertices(); headVertex++) {
+		for (int tailVertex = 0; tailVertex < this.numberOfVertices(); tailVertex++ ) {
+			for (int headVertex = 0; headVertex < this.numberOfVertices(); headVertex++) {
 				this.adjacency()[tailVertex][headVertex] = AdjacencyMatrixGraph.EDGE_NONE;
 			}
 		}
 	}
 	
 	// Public Getters & Setters
-	public int numberOvVertices () {
+	public int numberOfVertices() {
 		return this._numberOfVertices;
 	}
 	public int numberOfEdges () {
@@ -50,7 +50,7 @@ public class AdjacencyMatrixGraph {
 	}
 	
 	public boolean vertexDoesExist (int aVertex) {
-		return (aVertex >= 0 && aVertex < this.numberOvVertices());
+		return (aVertex >= 0 && aVertex < this.numberOfVertices());
 	}
 	
 	public boolean edgeDoesExist (Edge anEdge) {
