@@ -1,8 +1,8 @@
 public class AppController {
 	// Private instance variables
-	private AdjacencyMatrixGraph _graph;
-	private PairwiseDisjointSets _pairwiseDisjointSets;
-	
+	private AdjacencyMatrixGraph 	_graph;
+	private Coloring				_coloring;
+
 	// Getter & Setter
 	private AdjacencyMatrixGraph graph() {
 		return this._graph;
@@ -10,17 +10,17 @@ public class AppController {
 	private void setGraph(AdjacencyMatrixGraph newGraph) {
 		this._graph = newGraph;
 	}
-	private PairwiseDisjointSets pairwiseDisjointSets() {
-		return this._pairwiseDisjointSets;
+	private Coloring coloring() {
+		return this._coloring;
 	}
-	private void setPairwiseDisjointSets(PairwiseDisjointSets newPairwiseDisjointSets) {
-		this._pairwiseDisjointSets = newPairwiseDisjointSets;
+	private void setColoring(Coloring aColoring) {
+		this._coloring = aColoring;
 	}
 
 	// Constructor
 	public AppController() {	
 		this.setGraph(null);
-		this.setPairwiseDisjointSets(null);
+		this.setColoring(null);
 	}
 	private void inputAndMakeGraph() {
 		AppView.outputLine("> 입력할 그래프의 vertex 수와 edge 수를 먼저 입력해야 합니다:");
@@ -30,7 +30,6 @@ public class AppController {
 		int numberOfEdges = this.inputNumberOfEdges();
 		AppView.outputLine("");
 		AppView.outputLine("> 이제부터 edge를 주어진 수 만큼 입력합니다.");
-		this.initCycleDetection();
 
 		int edgeCount = 0;
 		while (edgeCount < numberOfEdges) {
@@ -44,19 +43,15 @@ public class AppController {
 				this.graph().addEdge(edge);
 				AppView.outputLine("!새로운 edge (" +
 						edge.tailVertex() + "," + edge.headVertex() + ") 가 그래프에 삽입되었습니다.");
-				if (this.addedEdgeDoesMakeCycle(edge)) {
-					AppView.outputLine("![Cycle]  삽입된 edge (" + edge.tailVertex() + ", " +
-						edge.headVertex() + ") 는 그래프에 사이클을 만들었습니다.");
-				}
 			}
 		}
 	}
 	private void showGraph() {
 		AppView.outputLine("");
 		AppView.outputLine("> 입력된 그래프는 다음과 같습니다:");
-		for (int tailVertex = 0; tailVertex < this.graph().numberOvVertices(); tailVertex++) {
+		for (int tailVertex = 0; tailVertex < this.graph().numberOfVertices(); tailVertex++) {
 			AppView.output("["+tailVertex+"] ->");
-			for (int headVertex = 0; headVertex < this.graph().numberOvVertices(); headVertex++) {
+			for (int headVertex = 0; headVertex < this.graph().numberOfVertices(); headVertex++) {
 				if (this.graph().edgeDoesExist((new Edge(tailVertex, headVertex)))) {
 					AppView.output(" " + headVertex);
 				}
@@ -69,8 +64,34 @@ public class AppController {
 		AppView.outputLine("<<< 입력되는 그래프의 사이클 검사를 시작합니다 >>>");
 		this.inputAndMakeGraph();
 		this.showGraph();
+
+		this.setColoring(new Coloring(this.graph()));
+		this.coloring().runColoring();
+		this.showColoring();
 		AppView.outputLine(""); //사이를 한 줄 띄우기로 한다.
 		AppView.outputLine("<<< 그래프의 입력과 사이클 검사를 종료합니다 >>>");
+	}
+
+	private void showColoring() {
+		AppView.outputLine("");
+		AppView.outputLine("> 각 vertex에 칠해진 색깔은 다음과 같습니다:");
+		for (int vertex = 0; vertex < this.graph().numberOfVertices(); vertex++) {
+			AppView.outputLine("[" + vertex+ "] " + this.coloring().vertexColor(vertex).name()); // Enum에 정의된 색상의 이름을 String 객체로 얻을 수 있다.
+		}
+
+		AppView.outputLine("");
+		AppView.outputLine("> 양 끝 vertex의 색깔이 같은 edge들은 다음과 같습니다: ");
+		if (this.coloring().sameColorEdges().size() == 0 ) {
+			AppView.outputLine("!! 모든 edge의 양 끝 vertex의 색깔이 다릅니다.");
+		}
+		else {
+			LinkedList<Edge>.IteratorForLinkedList iterator = this.coloring().sameColorEdges().iterator();
+			while (iterator.hasNext()) {
+				Edge currentEdge = iterator.next();
+				AppView.outputLine("(" + currentEdge.tailVertex() + "," + currentEdge.headVertex() + "):");
+				AppView.outputLine(" " + this.coloring().vertexColor(currentEdge.tailVertex()).name());
+			}
+		}
 	}
 
 	private int inputNumberOfVertices() {
@@ -110,22 +131,5 @@ public class AppController {
 				}
 			}
 		} while (true);
-	}
-	private void initCycleDetection() {
-		this.setPairwiseDisjointSets(
-				new PairwiseDisjointSets(this.graph().numberOvVertices()));
-	}
-	private boolean addedEdgeDoesMakeCycle (Edge anAddedEdge) {
-		int tailVertex = anAddedEdge.tailVertex();
-		int headVertex = anAddedEdge.headVertex();
-		int setForTailVertex = this.pairwiseDisjointSets().find(tailVertex);
-		int setForHeadVertex = this.pairwiseDisjointSets().find(headVertex);
-		if (setForTailVertex == setForHeadVertex) {
-			return true;
-		}
-		else {
-			this.pairwiseDisjointSets().union(setForTailVertex, setForHeadVertex);
-			return false;
-		}
 	}
 }
