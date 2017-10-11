@@ -1,10 +1,12 @@
+package app;
+
 import java.util.Scanner;
 
 // Java does not allow declaring a static class syntactically.
 // But, we can make a class that is just like a static class in Java as follows:
 public final class AppView {
 	
-	// "final" will prevent inheritance of static class "AppView"
+	// "final" will prevent inheritance of static class "app.AppView"
 	// because inheritance has no meaning for a static class
 	
 	private static Scanner scanner = new Scanner(System.in);
@@ -83,6 +85,21 @@ public final class AppView {
 			}
 			catch (NumberFormatException e) {
 				AppView.outputLine("(오류) head vertex 수 입력에 오류가 있습니다: " + scannedToken);
+			}
+		}
+	}
+	public static int inputCost() {
+		int cost;
+		String scannedToken;
+		while(true) {
+			AppView.output("? cost 를 입력하시오: ");
+			scannedToken = AppView.scanner.next();
+			try {
+				cost = Integer.parseInt(scannedToken);
+				return cost;
+			}
+			catch (NumberFormatException e) {
+				AppView.outputLine ("[오류] cost 입력에 오류가 있습니다: " + scannedToken);
 			}
 		}
 	}

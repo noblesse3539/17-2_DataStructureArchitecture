@@ -1,3 +1,5 @@
+package kruskal;
+
 /**
  * Created by noble on 2017-09-20.
  */
