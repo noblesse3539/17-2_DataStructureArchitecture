@@ -1,3 +1,5 @@
+package kruskal;
+
 import javafx.util.Pair;
 
 import java.lang.reflect.Parameter;

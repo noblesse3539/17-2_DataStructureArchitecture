@@ -1,31 +1,28 @@
+package app;
+
+import graph.WeightedEdge;
+import graph.WeightedUndirectedAdjacencyMatrixGraph;
+
 public class AppController {
 	// Private instance variables
-	private AdjacencyMatrixGraph 	_graph;
-	private Coloring				_coloring;
+	private WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge> _graph;
 
 	// Getter & Setter
-	private AdjacencyMatrixGraph graph() {
+	private WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge> graph() {
 		return this._graph;
 	}
-	private void setGraph(AdjacencyMatrixGraph newGraph) {
+	private void setGraph(WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge> newGraph) {
 		this._graph = newGraph;
-	}
-	private Coloring coloring() {
-		return this._coloring;
-	}
-	private void setColoring(Coloring aColoring) {
-		this._coloring = aColoring;
 	}
 
 	// Constructor
 	public AppController() {	
 		this.setGraph(null);
-		this.setColoring(null);
 	}
 	private void inputAndMakeGraph() {
 		AppView.outputLine("> 입력할 그래프의 vertex 수와 edge 수를 먼저 입력해야 합니다:");
 		int numberOfVertices = this.inputNumberOfVertices();
-		this.setGraph(new AdjacencyMatrixGraph(numberOfVertices));
+		this.setGraph(new WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge>(numberOfVertices));
 		
 		int numberOfEdges = this.inputNumberOfEdges();
 		AppView.outputLine("");
@@ -33,16 +30,16 @@ public class AppController {
 
 		int edgeCount = 0;
 		while (edgeCount < numberOfEdges) {
-			Edge edge = this.inputEdge();
+			WeightedEdge edge = this.inputEdge();
 			if (this.graph().edgeDoesExist(edge)) {
-				AppView.outputLine("오류) 입력된 edge (" +
-						edge.tailVertex() + "," + edge.headVertex() + ")는 그래프에 이미 존재합니다.");
+				AppView.outputLine("오류) 입력된 edge (" + edge.tailVertex() + "," + edge.headVertex() +
+						", (" + edge.weight() + ")) 는 그래프에 이미 존재합니다.");
 			}
 			else {
 				edgeCount++;
 				this.graph().addEdge(edge);
-				AppView.outputLine("!새로운 edge (" +
-						edge.tailVertex() + "," + edge.headVertex() + ") 가 그래프에 삽입되었습니다.");
+				AppView.outputLine("!새로운 edge (" +  edge.tailVertex() + "," + edge.headVertex() +
+						", (" + edge.weight() + ")) 가 그래프에 삽입되었습니다.");
 			}
 		}
 	}
@@ -50,49 +47,41 @@ public class AppController {
 		AppView.outputLine("");
 		AppView.outputLine("> 입력된 그래프는 다음과 같습니다:");
 		for (int tailVertex = 0; tailVertex < this.graph().numberOfVertices(); tailVertex++) {
-			AppView.output("["+tailVertex+"] ->");
+			AppView.output("[" + tailVertex + "] ->");
 			for (int headVertex = 0; headVertex < this.graph().numberOfVertices(); headVertex++) {
-				if (this.graph().edgeDoesExist((new Edge(tailVertex, headVertex)))) {
+				if (this.graph().edgeDoesExist(tailVertex, headVertex)) {
 					AppView.output(" " + headVertex);
+					AppView.output("(" + this.graph().weightOfEdge(tailVertex, headVertex) + ")");
 				}
+			}
+			AppView.outputLine("");
+		}
+		AppView.outputLine("");
+		AppView.outputLine("> 입력된 그래프의 Adjacency Matrix는 다음과 같습니다:");
+		AppView.output("	  ");
+		for (int headVertex = 0; headVertex < this.graph().numberOfVertices() ; headVertex++) {
+			AppView.output(String.format(" [%1s]",headVertex));
+		}
+		AppView.outputLine("");
+		for (int tailVertex = 0; tailVertex < this.graph().numberOfVertices(); tailVertex++) {
+			AppView.output("["+tailVertex+"] ->");
+			for (int headVertex = 0; headVertex < this.graph().numberOfVertices() ; headVertex++) {
+				int weight = this.graph().weightOfEdge(tailVertex, headVertex);
+				AppView.output(String.format("%4d", weight));
 			}
 			AppView.outputLine("");
 		}
 	}
 	// run 이외의 다른 모든 함수는 private
 	public void run() {
-		AppView.outputLine("<<< 입력되는 그래프의 사이클 검사를 시작합니다 >>>");
+		AppView.outputLine("<<< 최소비용 확장 트리 찾기 프로그램을 시작합니다 >>>");
 		this.inputAndMakeGraph();
 		this.showGraph();
 
-		this.setColoring(new Coloring(this.graph()));
-		this.coloring().runColoring();
-		this.showColoring();
 		AppView.outputLine(""); //사이를 한 줄 띄우기로 한다.
-		AppView.outputLine("<<< 그래프의 입력과 사이클 검사를 종료합니다 >>>");
+		AppView.outputLine("<<< 최소비용 확장 트리 찾기 프로그램을 종료합니다 >>>");
 	}
 
-	private void showColoring() {
-		AppView.outputLine("");
-		AppView.outputLine("> 각 vertex에 칠해진 색깔은 다음과 같습니다:");
-		for (int vertex = 0; vertex < this.graph().numberOfVertices(); vertex++) {
-			AppView.outputLine("[" + vertex+ "] " + this.coloring().vertexColor(vertex).name()); // Enum에 정의된 색상의 이름을 String 객체로 얻을 수 있다.
-		}
-
-		AppView.outputLine("");
-		AppView.outputLine("> 양 끝 vertex의 색깔이 같은 edge들은 다음과 같습니다: ");
-		if (this.coloring().sameColorEdges().size() == 0 ) {
-			AppView.outputLine("!! 모든 edge의 양 끝 vertex의 색깔이 다릅니다.");
-		}
-		else {
-			LinkedList<Edge>.IteratorForLinkedList iterator = this.coloring().sameColorEdges().iterator();
-			while (iterator.hasNext()) {
-				Edge currentEdge = iterator.next();
-				AppView.outputLine("(" + currentEdge.tailVertex() + "," + currentEdge.headVertex() + "):");
-				AppView.outputLine(" " + this.coloring().vertexColor(currentEdge.tailVertex()).name());
-			}
-		}
-	}
 
 	private int inputNumberOfVertices() {
 		int numberOfVertices = AppView.inputNumberOfVertices();
@@ -110,16 +99,17 @@ public class AppController {
 		}
 		return numberOfEdges;
 	}
-	private Edge inputEdge() {
+	private WeightedEdge inputEdge() {
 		do {
-			AppView.outputLine(" - 입력할 edge의 두 vertex를 차례로 입력해야 합니다:");
+			AppView.outputLine(" - 입력할 edge의 두 vertex와 cost를 차례로 입력해야 합니다:");
 			int tailVertex = AppView.inputTailVertex();
 			int headVertex = AppView.inputHeadVertex();
+			int cost = AppView.inputCost();
 			if (this.graph().vertexDoesExist(tailVertex) && this.graph().vertexDoesExist(headVertex)) {
 				if (tailVertex == headVertex) {
 					AppView.outputLine("[오류] 두 vertex 번호가 동일합니다.");
 				} else {
-					return (new Edge(tailVertex, headVertex));
+					return (new WeightedEdge(tailVertex, headVertex, cost));
 				}
 			}
 			else {
@@ -128,6 +118,9 @@ public class AppController {
 				}
 				if (! this.graph().vertexDoesExist(headVertex)) {
 					AppView.outputLine("[오류] 존재하지 않는 head vertex 입니다: " + headVertex);
+				}
+				if (cost <0) {
+					AppView.outputLine("[오류] edge의 비용은 양수이어야 합니다: " + cost);
 				}
 			}
 		} while (true);
