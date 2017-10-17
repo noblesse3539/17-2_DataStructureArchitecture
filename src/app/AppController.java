@@ -2,10 +2,14 @@ package app;
 
 import graph.WeightedEdge;
 import graph.WeightedUndirectedAdjacencyMatrixGraph;
+import kruskal.MinCostSpanningTree;
+import list.LinkedList;
 
 public class AppController {
 	// Private instance variables
-	private WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge> _graph;
+	private WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge>	_graph;
+	private MinCostSpanningTree										_minCostSpanningTree;
+	private LinkedList<WeightedEdge>								_spanningTreeEdgeList;
 
 	// Getter & Setter
 	private WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge> graph() {
@@ -14,10 +18,34 @@ public class AppController {
 	private void setGraph(WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge> newGraph) {
 		this._graph = newGraph;
 	}
-
+	private MinCostSpanningTree minCostSpanningTree() {
+		return this._minCostSpanningTree;
+	}
+	private void setMinCostSpanningTree(MinCostSpanningTree newMinCostSpanningTree) {
+		this._minCostSpanningTree = newMinCostSpanningTree;
+	}
+	private LinkedList<WeightedEdge> spanningTreeEdgeList() {
+		return this._spanningTreeEdgeList;
+	}
+	private void setSpanningTreeEdgeList(LinkedList<WeightedEdge> newSpanningTreeEdgeList) {
+		this._spanningTreeEdgeList = newSpanningTreeEdgeList;
+	}
 	// Constructor
 	public AppController() {	
 		this.setGraph(null);
+		this.setMinCostSpanningTree(null);
+		this.setMinCostSpanningTree(null);
+	}
+	private void showMinCostSpanningTree() {
+		AppView.outputLine("");
+		AppView.outputLine("> 주어진 그래프의 최소비용 확장트리의 edge들은 다음과 같습니다: ");
+		LinkedList<WeightedEdge>.IteratorForLinkedList iterator =
+				this.spanningTreeEdgeList().iterator();
+		while( iterator.hasNext()) {
+			WeightedEdge edge = iterator.next();
+			AppView.outputLine("Tree Edge(" + edge.tailVertex() + ", "+ edge.headVertex() +
+					", (" + edge.weight()+"))");
+		}
 	}
 	private void inputAndMakeGraph() {
 		AppView.outputLine("> 입력할 그래프의 vertex 수와 edge 수를 먼저 입력해야 합니다:");
@@ -25,6 +53,10 @@ public class AppController {
 		this.setGraph(new WeightedUndirectedAdjacencyMatrixGraph<WeightedEdge>(numberOfVertices));
 		
 		int numberOfEdges = this.inputNumberOfEdges();
+		while ( numberOfEdges > (numberOfVertices*(numberOfVertices-1))/2) {
+			AppView.outputLine("오류) 해당하는 vertex의 수에서 최대로 생성할 수 있는 edge의 수를 초과했습니다.");
+			numberOfEdges = this.inputNumberOfEdges();
+		}
 		AppView.outputLine("");
 		AppView.outputLine("> 이제부터 edge를 주어진 수 만큼 입력합니다.");
 
@@ -78,7 +110,18 @@ public class AppController {
 		this.inputAndMakeGraph();
 		this.showGraph();
 
-		AppView.outputLine(""); //사이를 한 줄 띄우기로 한다.
+		AppView.outputLine("");
+		AppView.outputLine("> 주어진 그래프의 최소비용 확장트리 찾기를 시작합니다:");
+		AppView.outputLine("");
+		this.setMinCostSpanningTree(new MinCostSpanningTree());
+		this.setSpanningTreeEdgeList(this.minCostSpanningTree().solve(this.graph()));
+		if (this.spanningTreeEdgeList() == null) {
+			AppView.outputLine("> 주어진 그래프의 컴포넌트가 2 개 이상이어서, 최소비용 확장트리 찾기를 실패하였습니다.");
+		}
+		else {
+			this.showMinCostSpanningTree();
+		}
+		AppView.outputLine("");
 		AppView.outputLine("<<< 최소비용 확장 트리 찾기 프로그램을 종료합니다 >>>");
 	}
 
@@ -92,6 +135,7 @@ public class AppController {
 		return numberOfVertices;
 	}
 	private int inputNumberOfEdges() {
+
 		int numberOfEdges = AppView.inputNumberOfEdges();
 		while (numberOfEdges < 0) {
 			AppView.outputLine("[오류] edge 수는 0 보다 크거나 같아야 합니다: " + numberOfEdges );
